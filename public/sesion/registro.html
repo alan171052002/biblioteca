@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca</title>
+    <link rel="stylesheet" href="../style2.css">
+    <script src="https://kit.fontawesome.com/e80ca12edd.js" crossorigin="anonymous"></script>
+    <script defer src="../main.js"></script>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="/" class="logo nav-link">Biblioteca TAMTO</a>
+            <button class="nav-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <ul class="nav-menu">
+                <li class="nav-menu-item" id="menu-cursos">
+                    <a href="/cursos" class="nav-menu-link nav-link">Cursos</a>
+                </li>
+                <li class="nav-menu-item" id="menu-manuales">
+                    <a href="/manuales" class="nav-menu-link nav-link">Manuales</a>
+                </li>
+                <li class="nav-menu-item" id="menu-archivos">
+                    <a href="/archivos" class="nav-menu-link nav-link">Archivos</a>
+                </li>
+                <li class="nav-menu-item" id="menu-login">
+                    <a href="/login" class="nav-menu-link nav-link ">Iniciar Sesión</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+
+    
+    <div class="registro-contenedor">
+        <h2>Registro de Usuario</h2>
+        <form action="/registro" method="POST" class="registro-formulario">
+            <div class="input-contenedor">
+                <i class="fa-solid fa-briefcase"></i>
+                <input type="text" id="cargo" name="cargo" required>
+                <label for="cargo">Cargo:</label>
+            </div>
+            <div class="input-contenedor">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="Nombre" name="Nombre" required>
+                <label for="Nombre">Nombre:</label>
+            </div>
+            <div class="input-contenedor">
+                <i class="fa-solid fa-user-tag"></i>
+                <input type="text" id="user_name" name="user_name" required autocomplete="off">
+                <label for="user_name">Nombre de Usuario:</label>
+            </div>
+            <div class="input-contenedor">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="password" name="password" required autocomplete="off">
+                <label for="password">Contraseña:</label>
+            </div>
+            <div class="input-contenedor">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="repetirPassword" name="repetirPassword" required autocomplete="off">
+                <label for="repetirPassword">Repetir Contraseña:</label>
+            </div>
+            <button type="submit" class="btn-registrar">Registrar</button>
+        </form>
+    </div>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-links">
+                <a href="#" class="footer-link">Privacidad</a>
+                <a href="#" class="footer-link">Términos de servicio</a>
+            </div>
+            <div class="footer-social">
+                <a href="https://www.facebook.com/industrialtamtodepuebla/?locale=es_LA" 
+                class="social-link"><i class="fa-brands fa-facebook"></i></a>
+                <a href="https://x.com/i/flow/login?redirect_after_login=%2Findustrialtamto" 
+                class="social-link"><i class="fa-brands fa-twitter"></i></a>
+                <a href="https://www.instagram.com/productostamto/?hl=es"
+                class="social-link"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+        </div>
+        <p class="footer-copyright">© 2024 Biblioteca TAMTO. Todos los derechos reservados.</p>
+
+    </footer>
+
+</body>
+</html>

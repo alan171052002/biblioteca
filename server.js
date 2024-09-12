@@ -10,6 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 5432;
 const fs = require('fs');
 const uploadDir = path.join(__dirname, 'public/uploads');
+app.use(bodyParser.urlencoded({ extended: true }));
 
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -137,13 +138,14 @@ app.post('/login', (req, res) => {
     const sql = 'SELECT * FROM usuarios WHERE user_name = $1';
     client.query(sql, [usuario], (err, results) => {
         if (err) {
+            console.error('Error en la base de datos:', err);
             return res.status(500).send('Error en la base de datos.');
         }
-        if (results.length === 0) {
+        if (results.rowCount === 0) {
             return res.status(400).send('Usuario no encontrado.');
         }
 
-        const user = results[0];
+        const user = results.rows[0];
         if (user.password !== password) {
             return res.status(400).send('Contraseña incorrecta.');
         }

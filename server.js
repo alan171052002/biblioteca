@@ -37,7 +37,7 @@ const client = new Client({
     ssl: {
         rejectUnauthorized: false // Este es solo para entornos de desarrollo; en producción, debes manejar los certificados adecuadamente
     }
-  });
+});
 
 // Conecta a la base de datos
 client.connect(err => {
@@ -57,7 +57,7 @@ app.post('/registro', (req, res) => {
         return res.status(400).send('Las contraseñas no coinciden.');
     }
 
-    const sql = 'INSERT INTO usuarios (cargo, Nombre, user_name, password) VALUES (?, ?, ?, ?)';
+    const sql = 'INSERT INTO usuarios (cargo, Nombre, user_name, password) VALUES ($1, $2, $3, $4)';
     client.query(sql, [cargo, Nombre, user_name, password], (err, result) => {
         if (err) {
             return res.status(500).send('Error al registrar el usuario.');
@@ -69,6 +69,7 @@ app.put('/usuarios/editar/:id', (req, res) => {
     const userId = req.params.id;
     const { Nombre, cargo, user_name, password } = req.body;
 
+    // Verificar que se proporcionen los datos necesarios
     if (!Nombre || !cargo || !user_name) {
         return res.status(400).json({ success: false, message: 'Datos faltantes.' });
     }
@@ -78,33 +79,33 @@ app.put('/usuarios/editar/:id', (req, res) => {
 
     if (password) {
         // Actualizar todo incluyendo la contraseña
-        query = `UPDATE usuarios SET Nombre = ?, cargo = ?, user_name = ?, password = ? WHERE id = ?`;
+        query = `UPDATE usuarios SET Nombre = $1, cargo = $2, user_name = $3, password = $4 WHERE id = $5`;
         values = [Nombre, cargo, user_name, password, userId];
     } else {
         // Actualizar sin modificar la contraseña
-        query = `UPDATE usuarios SET Nombre = ?, cargo = ?, user_name = ? WHERE id = ?`;
+        query = `UPDATE usuarios SET Nombre = $1, cargo = $2, user_name = $3 WHERE id = $4`;
         values = [Nombre, cargo, user_name, userId];
     }
 
-    // Usar client.query en lugar de db.query
-    client.query(query, values, (err, result) => {
-        if (err) {
+    // Usar client.query para ejecutar la consulta
+    client.query(query, values)
+        .then(result => {
+            if (result.rowCount === 0) {
+                return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+            }
+
+            return res.json({ success: true, message: 'Usuario actualizado exitosamente.' });
+        })
+        .catch(err => {
             console.error('Error al actualizar usuario:', err);
             return res.status(500).json({ success: false, message: 'Error al actualizar usuario.' });
-        }
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
-        }
-
-        return res.json({ success: true, message: 'Usuario actualizado exitosamente.' });
-    });
+        });
 });
 // Ruta para eliminar un usuario
 app.delete('/usuarios/eliminar/:id', (req, res) => {
     const userId = req.params.id;
 
-    const sql = 'DELETE FROM usuarios WHERE id = ?';
+    const sql = 'DELETE FROM usuarios WHERE id = $1';
     client.query(sql, [userId], (err, result) => {
         if (err) {
             console.error('Error al eliminar el usuario:', err);
@@ -133,7 +134,7 @@ app.get('/usuarios/listar', (req, res) => {
 app.post('/login', (req, res) => {
     const { usuario, password } = req.body;
 
-    const sql = 'SELECT * FROM usuarios WHERE user_name = ?';
+    const sql = 'SELECT * FROM usuarios WHERE user_name = $1';
     client.query(sql, [usuario], (err, results) => {
         if (err) {
             return res.status(500).send('Error en la base de datos.');
@@ -205,7 +206,7 @@ app.get('/', (req, res) => {
 app.get('/usuarios/:id', (req, res) => {
     const id = req.params.id;
 
-    const sql = 'SELECT * FROM usuarios WHERE id = ?';
+    const sql = 'SELECT * FROM usuarios WHERE id = $1';
     client.query(sql, [id], (err, result) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Error al modificar el usuario.' });
@@ -280,7 +281,7 @@ app.post('/archivos/agregar', upload.single('fileUpload'), (req, res) => {
     const pdfPath = 'uploads/' + req.file.filename; // Guardar la ruta relativa
 
 
-    const sql = 'INSERT INTO archivos (nombre, descripcion, pdf_path) VALUES (?, ?, ?)';
+    const sql = 'INSERT INTO archivos (nombre, descripcion, pdf_path) VALUES ($1, $2, $3)';
     client.query(sql, [fileName, fileDescription, pdfPath], (err, result) => {
         if (err) {
             console.error('Error al agregar archivo:', err);
@@ -292,7 +293,7 @@ app.post('/archivos/agregar', upload.single('fileUpload'), (req, res) => {
 app.delete('/archivos/eliminar/:id', (req, res) => {
     const id = req.params.id;
 
-    const sql = 'DELETE FROM archivos WHERE id = ?';
+    const sql = 'DELETE FROM archivos WHERE id = $1';
     client.query(sql, [id], (err, result) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Error al eliminar archivo.' });
@@ -325,7 +326,7 @@ app.post('/manuales/agregar', upload.single('fileManual'), (req, res) => {
     const { manualName, manualDescription } = req.body;
     const manualPath = 'uploads/manuales/' + req.file.filename;
 
-    const sql = 'INSERT INTO manuales (nombre, descripcion, pdf_path) VALUES (?, ?, ?)';
+    const sql = 'INSERT INTO manuales (nombre, descripcion, pdf_path) VALUES ($1, $2, $3)';
     client.query(sql, [manualName, manualDescription, manualPath], (err, result) => {
         if (err) {
             console.error('Error al agregar manual:', err);
@@ -345,15 +346,19 @@ app.get('/api/rol', (req, res) => {
 app.delete('/manuales/eliminar/:id', (req, res) => {
     const id = req.params.id;
 
-    const sql = 'DELETE FROM manuales WHERE id = ?';
-    client.query(sql, [id], (err, result) => {
-        if (err) {
+    const sql = 'DELETE FROM manuales WHERE id = $1';
+    client.query(sql, [id])
+        .then(result => {
+            if (result.rowCount === 0) {
+                return res.status(404).json({ success: false, message: 'Manual no encontrado.' });
+            }
+            res.json({ success: true, message: 'Manual eliminado exitosamente.' });
+        })
+        .catch(err => {
+            console.error('Error al eliminar manual:', err);
             return res.status(500).json({ success: false, message: 'Error al eliminar manual.' });
-        }
-        res.json({ success: true, message: 'Manual eliminado exitosamente.' });
-    });
+        });
 });
-
 // Ruta para listar los manuales
 app.get('/manuales/listar', (req, res) => {
     const sql = 'SELECT * FROM manuales';

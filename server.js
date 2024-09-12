@@ -5,9 +5,9 @@ const session = require('express-session');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 const { PDFDocument } = require('pdf-lib');
-
+require('dotenv').config();
 const app = express();
-const port = 5432;
+const PORT = process.env.PORT || 5432;
 const fs = require('fs');
 const uploadDir = path.join(__dirname, 'public/uploads');
 
@@ -30,11 +30,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Conexión a la base de datos
 const connection = mysql.createConnection({
-    host: 'dpg-crhh2clsvqrc738e1de0-a.oregon-postgres.render.com', // Cambia esto al host de tu base de datos en Render
-    user: 'alanuwu', // Cambia esto al usuario de tu base de datos en Render
-    password: 'V1oCwY2vGxub0PxOft248xeH89qNV5Mn', // Cambia esto a la contraseña de tu base de datos en Render
-    database: 'biblioteca_6fyp' // Cambia esto al nombre de tu base de datos en Render
-});
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+  });
 
 // Conecta a la base de datos
 connection.connect((err) => {
@@ -374,7 +374,7 @@ app.get('/manuales/:file', (req, res) => {
 */
 
 // Iniciar el servidor
-app.listen(port, () => {
-    console.log(`Servidor escuchando en http://localhost:${port}`);
+app.listen(PORT, () => {
+    console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
 

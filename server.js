@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const mysql = require('mysql');
+const { Client } = require('pg');
 const session = require('express-session');
 const multer = require('multer');
 const bodyParser = require('body-parser');
@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Conexión a la base de datos
-const connection = mysql.createConnection({
+const client = new Client({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
@@ -38,14 +38,14 @@ const connection = mysql.createConnection({
   });
 
 // Conecta a la base de datos
-connection.connect((err) => {
+client.connect(err => {
     if (err) {
-        console.error('Error al conectar a la base de datos:', err);
-        return;
+        console.error('Error al conectar a la base de datos:', err.stack);
+        // Maneja el error de conexión aquí, quizás reiniciar la conexión o enviar una respuesta de error
+    } else {
+        console.log('Conectado a la base de datos.');
     }
-    console.log('Conexión a la base de datos establecida con éxito');
 });
-
 app.use(bodyParser.json()); // Esto permite que Express entienda JSON en el cuerpo de la solicitud
 // Ruta para manejar el registro de usuarios
 app.post('/registro', (req, res) => {

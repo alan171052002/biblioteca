@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const { PDFDocument } = require('pdf-lib');
 require('dotenv').config();
 const app = express();
-const PORT = process.env.PORT || 3306;
+const PORT = process.env.PORT || 5432;
 const fs = require('fs');
 const uploadDir = path.join(__dirname, 'public/uploads');
 

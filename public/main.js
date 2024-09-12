@@ -15,6 +15,45 @@ navToggle.addEventListener("click", () => {
             document.getElementById('menu-login').innerHTML = `<a href="#" class="nav-menu-link nav-link">${user.nombre}</a>`;
         }
     });*/
+    document.addEventListener('DOMContentLoaded', () => {
+        // Hacer una petición al servidor para obtener el rol del usuario
+        fetch('/api/rol')
+            .then(response => response.json())
+            .then(data => {
+                const role = data.role;
+    
+                if (role !== 'Gerente') {
+                    // Si el rol no es 'Gerente', ocultar el menú de archivos
+                    const archivosMenu = document.getElementById('menu-archivos');
+                    if (archivosMenu) {
+                        archivosMenu.style.display = 'none';
+                    }
+    
+                    // Ocultar el menú de usuarios si no es gerente
+                    const usuariosMenu = document.getElementById('menu-usuarios'); // Asegúrate de que este ID coincida con el del HTML
+                    if (usuariosMenu) {
+                        usuariosMenu.style.display = 'none';
+                    }
+    
+                    // Oculta el formulario para agregar manual si no es gerente
+                    const manualForm = document.getElementById('manualForm');
+                    const manualSection = document.getElementById('manualSection');
+                    if (manualForm) {
+                        manualForm.style.display = 'none';
+                    }
+                    if (manualSection) {
+                        manualSection.style.display = 'block';
+                    }
+    
+                    // Oculta los botones de eliminar para los operadores
+                    const deleteButtons = document.querySelectorAll('.delete-button');
+                    deleteButtons.forEach(button => {
+                        button.style.display = 'none';
+                    });
+                }
+            })
+            .catch(error => console.error('Error al obtener el rol del usuario:', error));
+    });
 
 document.addEventListener('DOMContentLoaded', () => {
     fetch('/user-session')
@@ -186,34 +225,40 @@ async function eliminarPaginas(pdfPath, id) {
 
 
 /************************************ */
-ddocument.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
     const manualForm = document.getElementById('manualForm');
     const manualTableBody = document.querySelector('#manualTable tbody');
 
     // Función para listar manuales
     function listarManuales() {
         fetch('/manuales/listar')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    manualTableBody.innerHTML = ''; // Limpiar la tabla
-                    data.manuales.forEach(manual => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${manual.nombre}</td>
-                            <td>${manual.descripcion}</td>
-                            <td>
-                                <a href="/manuales/${manual.pdf_path}" download>Descargar</a>
-                                <button class="delete-btn" data-id="${manual.id}">Eliminar</button>
-                            </td>
-                        `;
-                        manualTableBody.appendChild(row);
-                    });
-                } else {
-                    console.error(data.message);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al obtener manuales');
                 }
+                return response.json();
             })
-            .catch(err => console.error('Error al obtener manuales:', err));
+            .then(manuales => {
+                console.log('Manuales obtenidos:', manuales); // Verificar que los manuales se están obteniendo correctamente
+                manualTableBody.innerHTML = ''; // Limpiar la tabla antes de cargar los manuales
+
+                manuales.forEach(manual => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${manual.nombre}</td>
+                        <td>${manual.descripcion}</td>
+                        <td>
+                            <a href="/manuales/${manual.pdf_path}" download>Descargar</a>
+                            <button class="delete-btn btn btn-danger btn-sm" data-id="${manual.id}">Eliminar</button>
+                        </td>
+                    `;
+                    manualTableBody.appendChild(row);
+                });
+            })
+            .catch(err => {
+                console.error('Error al cargar manuales:', err); // Verifica si ocurre un error al hacer fetch
+                alert('Error al cargar manuales');
+            });
     }
 
     // Función para agregar un manual
@@ -229,9 +274,8 @@ ddocument.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.success) {
                     listarManuales(); // Actualizar lista de manuales
-                    manualForm.reset(); // Limpiar el formulario después de agregar
                 } else {
-                    alert('Error al agregar manual: ' + data.message);
+                    alert('Error al agregar manual.');
                 }
             })
             .catch(err => console.error('Error al agregar manual:', err));
@@ -250,7 +294,7 @@ ddocument.addEventListener('DOMContentLoaded', function () {
                     if (data.success) {
                         listarManuales(); // Actualizar lista de manuales
                     } else {
-                        alert('Error al eliminar manual: ' + data.message);
+                        alert('Error al eliminar manual.');
                     }
                 })
                 .catch(err => console.error('Error al eliminar manual:', err));
@@ -263,45 +307,7 @@ ddocument.addEventListener('DOMContentLoaded', function () {
 
 
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Hacer una petición al servidor para obtener el rol del usuario
-    fetch('/api/rol')
-        .then(response => response.json())
-        .then(data => {
-            const role = data.role;
 
-            if (role !== 'Gerente') {
-                // Si el rol no es 'Gerente', ocultar el menú de archivos
-                const archivosMenu = document.getElementById('menu-archivos');
-                if (archivosMenu) {
-                    archivosMenu.style.display = 'none';
-                }
-
-                // Ocultar el menú de usuarios si no es gerente
-                const usuariosMenu = document.getElementById('menu-usuarios'); // Asegúrate de que este ID coincida con el del HTML
-                if (usuariosMenu) {
-                    usuariosMenu.style.display = 'none';
-                }
-
-                // Oculta el formulario para agregar manual si no es gerente
-                const manualForm = document.getElementById('manualForm');
-                const manualSection = document.getElementById('manualSection');
-                if (manualForm) {
-                    manualForm.style.display = 'none';
-                }
-                if (manualSection) {
-                    manualSection.style.display = 'block';
-                }
-
-                // Oculta los botones de eliminar para los operadores
-                const deleteButtons = document.querySelectorAll('.delete-button');
-                deleteButtons.forEach(button => {
-                    button.style.display = 'none';
-                });
-            }
-        })
-        .catch(error => console.error('Error al obtener el rol del usuario:', error));
-});
 
 
 
@@ -322,11 +328,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${usuario.id}</td>
-                        <td>${usuario.Nombre}</td>
+                        <td>${usuario.nombre}</td>
                         <td>${usuario.cargo}</td>
                         <td>${usuario.user_name}</td>
                         <td>
-                            <button class="edit-btn" data-id="${usuario.id}" data-nombre="${usuario.Nombre}" data-cargo="${usuario.cargo}" data-username="${usuario.user_name}" data-password="${usuario.password}">Editar</button>
+                            <button class="edit-btn" data-id="${usuario.id}" data-nombre="${usuario.nombre}" data-cargo="${usuario.cargo}" data-username="${usuario.user_name}">Editar</button>
                             <button class="delete-btn" data-id="${usuario.id}">Eliminar</button>
                         </td>
                     `;
@@ -341,13 +347,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         <td colspan="5">
                             <form class="editUserForm" data-id="${usuario.id}">
                                 <label>Nombre:</label>
-                                <input type="text" id="editNombre-${usuario.id}" value="${usuario.Nombre}">
+                                <input type="text" id="editNombre-${usuario.id}" value="${usuario.nombre}">
                                 <label>Cargo:</label>
                                 <input type="text" id="editCargo-${usuario.id}" value="${usuario.cargo}">
                                 <label>Usuario:</label>
                                 <input type="text" id="editUserName-${usuario.id}" value="${usuario.user_name}">
                                 <label>Password:</label>
-                                <input type="password" id="editPassword-${usuario.id}" placeholder="Ingresa nueva contraseña">
+                                <input type="password" id="editPassword-${usuario.id}" placeholder="Ingresa nueva contraseña (opcional)">
                                 <button type="submit">Guardar cambios</button>
                             </form>
                         </td>
@@ -371,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             Nombre: document.getElementById(`editNombre-${userId}`).value,
                             cargo: document.getElementById(`editCargo-${userId}`).value,
                             user_name: document.getElementById(`editUserName-${userId}`).value,
-                            password: document.getElementById(`editPassword-${userId}`).value
+                            password: document.getElementById(`editPassword-${userId}`).value || undefined // Enviar undefined si está vacío
                         };
 
                         fetch(`/usuarios/editar/${userId}`, {
@@ -385,9 +391,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             .then(data => {
                                 if (data.success) {
                                     alert('Usuario actualizado exitosamente');
-                                    location.reload(); // Actualizar la página después de guardar
+                                    // Actualizar la fila del usuario con los nuevos datos
+                                    const rowToUpdate = usuariosBody.querySelector(`tr[data-id="${userId}"]`);
+                                    rowToUpdate.querySelector('td:nth-child(2)').textContent = updatedUser.Nombre;
+                                    rowToUpdate.querySelector('td:nth-child(3)').textContent = updatedUser.cargo;
+                                    rowToUpdate.querySelector('td:nth-child(4)').textContent = updatedUser.user_name;
                                 } else {
-                                    alert('Error al actualizar el usuario');
+                                    alert('Error al actualizar el usuario: ' + data.message);
                                 }
                             })
                             .catch(err => console.error('Error:', err));

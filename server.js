@@ -66,6 +66,17 @@ app.post('/registro', (req, res) => {
         res.redirect('/login');
     });
 });
+app.get('/usuarios/listar', (req, res) => {
+    const query = 'SELECT id, nombre, cargo, user_name FROM usuarios';
+    client.query(query)
+        .then(result => {
+            res.json({ success: true, usuarios: result.rows });
+        })
+        .catch(err => {
+            console.error('Error al obtener usuarios:', err);
+            res.status(500).json({ success: false, message: 'Error al obtener usuarios.' });
+        });
+});
 app.put('/usuarios/editar/:id', (req, res) => {
     const userId = req.params.id;
     const { Nombre, cargo, user_name, password } = req.body;
@@ -102,6 +113,7 @@ app.put('/usuarios/editar/:id', (req, res) => {
             return res.status(500).json({ success: false, message: 'Error al actualizar usuario.' });
         });
 });
+
 // Ruta para eliminar un usuario
 app.delete('/usuarios/eliminar/:id', (req, res) => {
     const userId = req.params.id;
@@ -118,15 +130,15 @@ app.delete('/usuarios/eliminar/:id', (req, res) => {
 });
 
 // Ruta para listar los usuarios
-app.get('/usuarios/listar', (req, res) => {
-    const sql = 'SELECT * FROM usuarios';
+app.get('/archivos/listar', (req, res) => {
+    const sql = 'SELECT * FROM archivos';
     client.query(sql, (err, results) => {
         if (err) {
-            console.error('Error al obtener los usuarios:', err);
-            return res.status(500).json({ success: false, message: 'Error al obtener usuarios.' });
+            console.error('Error al obtener archivos:', err); // Para verificar errores
+            return res.status(500).json({ success: false, message: 'Error al obtener archivos.' });
         }
-        // Asegúrate de usar results.rows para acceder a los datos
-        res.json({ success: true, usuarios: results.rows });
+
+        res.json(results.rows);
     });
 });
 
@@ -217,6 +229,7 @@ app.get('/usuarios/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+
 
 // Ruta para verificar si el usuario está autenticado
 app.get('/api/usuario', (req, res) => {
@@ -369,11 +382,10 @@ app.get('/manuales/listar', (req, res) => {
     const sql = 'SELECT * FROM manuales';
     client.query(sql, (err, results) => {
         if (err) {
-            console.error('Error al obtener manuales:', err);
+            console.error('Error al obtener manuales:', err); // Para verificar errores
             return res.status(500).json({ success: false, message: 'Error al obtener manuales.' });
         }
-        // Asegúrate de usar results.rows para acceder a los datos
-        res.json({ success: true, manuales: results.rows });
+        res.json(results.rows);
     });
 });
 

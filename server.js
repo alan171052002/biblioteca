@@ -58,7 +58,7 @@ app.post('/registro', (req, res) => {
     }
 
     const sql = 'INSERT INTO usuarios (cargo, Nombre, user_name, password) VALUES (?, ?, ?, ?)';
-    connection.query(sql, [cargo, Nombre, user_name, password], (err, result) => {
+    client.query(sql, [cargo, Nombre, user_name, password], (err, result) => {
         if (err) {
             return res.status(500).send('Error al registrar el usuario.');
         }
@@ -86,8 +86,8 @@ app.put('/usuarios/editar/:id', (req, res) => {
         values = [Nombre, cargo, user_name, userId];
     }
 
-    // Usar connection.query en lugar de db.query
-    connection.query(query, values, (err, result) => {
+    // Usar client.query en lugar de db.query
+    client.query(query, values, (err, result) => {
         if (err) {
             console.error('Error al actualizar usuario:', err);
             return res.status(500).json({ success: false, message: 'Error al actualizar usuario.' });
@@ -105,7 +105,7 @@ app.delete('/usuarios/eliminar/:id', (req, res) => {
     const userId = req.params.id;
 
     const sql = 'DELETE FROM usuarios WHERE id = ?';
-    connection.query(sql, [userId], (err, result) => {
+    client.query(sql, [userId], (err, result) => {
         if (err) {
             console.error('Error al eliminar el usuario:', err);
             return res.status(500).json({ success: false, message: 'Error al eliminar usuario.' });
@@ -118,7 +118,7 @@ app.delete('/usuarios/eliminar/:id', (req, res) => {
 // Ruta para listar los usuarios
 app.get('/usuarios/listar', (req, res) => {
     const sql = 'SELECT * FROM usuarios';
-    connection.query(sql, (err, results) => {
+    client.query(sql, (err, results) => {
         if (err) {
             console.error('Error al obtener los usuarios:', err);
             return res.status(500).json({ success: false, message: 'Error al obtener usuarios.' });
@@ -134,7 +134,7 @@ app.post('/login', (req, res) => {
     const { usuario, password } = req.body;
 
     const sql = 'SELECT * FROM usuarios WHERE user_name = ?';
-    connection.query(sql, [usuario], (err, results) => {
+    client.query(sql, [usuario], (err, results) => {
         if (err) {
             return res.status(500).send('Error en la base de datos.');
         }
@@ -206,7 +206,7 @@ app.get('/usuarios/:id', (req, res) => {
     const id = req.params.id;
 
     const sql = 'SELECT * FROM usuarios WHERE id = ?';
-    connection.query(sql, [id], (err, result) => {
+    client.query(sql, [id], (err, result) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Error al modificar el usuario.' });
         }
@@ -281,7 +281,7 @@ app.post('/archivos/agregar', upload.single('fileUpload'), (req, res) => {
 
 
     const sql = 'INSERT INTO archivos (nombre, descripcion, pdf_path) VALUES (?, ?, ?)';
-    connection.query(sql, [fileName, fileDescription, pdfPath], (err, result) => {
+    client.query(sql, [fileName, fileDescription, pdfPath], (err, result) => {
         if (err) {
             console.error('Error al agregar archivo:', err);
             return res.status(500).json({ success: false, message: 'Error al agregar archivo.' });
@@ -293,7 +293,7 @@ app.delete('/archivos/eliminar/:id', (req, res) => {
     const id = req.params.id;
 
     const sql = 'DELETE FROM archivos WHERE id = ?';
-    connection.query(sql, [id], (err, result) => {
+    client.query(sql, [id], (err, result) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Error al eliminar archivo.' });
         }
@@ -303,7 +303,7 @@ app.delete('/archivos/eliminar/:id', (req, res) => {
 
 app.get('/archivos/listar', (req, res) => {
     const sql = 'SELECT * FROM archivos';
-    connection.query(sql, (err, results) => {
+    client.query(sql, (err, results) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Error al obtener archivos.' });
         }
@@ -326,7 +326,7 @@ app.post('/manuales/agregar', upload.single('fileManual'), (req, res) => {
     const manualPath = 'uploads/manuales/' + req.file.filename;
 
     const sql = 'INSERT INTO manuales (nombre, descripcion, pdf_path) VALUES (?, ?, ?)';
-    connection.query(sql, [manualName, manualDescription, manualPath], (err, result) => {
+    client.query(sql, [manualName, manualDescription, manualPath], (err, result) => {
         if (err) {
             console.error('Error al agregar manual:', err);
             return res.status(500).json({ success: false, message: 'Error al agregar manual.' });
@@ -346,7 +346,7 @@ app.delete('/manuales/eliminar/:id', (req, res) => {
     const id = req.params.id;
 
     const sql = 'DELETE FROM manuales WHERE id = ?';
-    connection.query(sql, [id], (err, result) => {
+    client.query(sql, [id], (err, result) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Error al eliminar manual.' });
         }
@@ -357,7 +357,7 @@ app.delete('/manuales/eliminar/:id', (req, res) => {
 // Ruta para listar los manuales
 app.get('/manuales/listar', (req, res) => {
     const sql = 'SELECT * FROM manuales';
-    connection.query(sql, (err, results) => {
+    client.query(sql, (err, results) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Error al obtener manuales.' });
         }

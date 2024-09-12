@@ -34,7 +34,9 @@ const client = new Client({
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    connectTimeout: 10000 // Aumenta el tiempo de espera a 10 segundos
+    ssl: {
+        rejectUnauthorized: false // Este es solo para entornos de desarrollo; en producción, debes manejar los certificados adecuadamente
+    }
   });
 
 // Conecta a la base de datos

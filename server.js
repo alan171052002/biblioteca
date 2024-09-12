@@ -125,10 +125,11 @@ app.get('/usuarios/listar', (req, res) => {
             console.error('Error al obtener los usuarios:', err);
             return res.status(500).json({ success: false, message: 'Error al obtener usuarios.' });
         }
-
-        res.json(results);
+        // Asegúrate de usar results.rows para acceder a los datos
+        res.json({ success: true, usuarios: results.rows });
     });
 });
+
 
 
 // Ruta para manejar el inicio de sesión
@@ -308,9 +309,11 @@ app.get('/archivos/listar', (req, res) => {
     const sql = 'SELECT * FROM archivos';
     client.query(sql, (err, results) => {
         if (err) {
+            console.error('Error al obtener archivos:', err);
             return res.status(500).json({ success: false, message: 'Error al obtener archivos.' });
         }
-        res.json(results);
+        // Asegúrate de usar results.rows para acceder a los datos
+        res.json({ success: true, archivos: results.rows });
     });
 });
 /*
@@ -366,9 +369,11 @@ app.get('/manuales/listar', (req, res) => {
     const sql = 'SELECT * FROM manuales';
     client.query(sql, (err, results) => {
         if (err) {
+            console.error('Error al obtener manuales:', err);
             return res.status(500).json({ success: false, message: 'Error al obtener manuales.' });
         }
-        res.json(results);
+        // Asegúrate de usar results.rows para acceder a los datos
+        res.json({ success: true, manuales: results.rows });
     });
 });
 

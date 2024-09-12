@@ -188,6 +188,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.get('/', (req, res) => {
     // Verificar si el usuario está en la sesión
     const user = req.session.user;
+    res.send('Hola Mundo');
+
     if (user) {
         // Si el usuario está autenticado, mostrar la vista con su nombre
         res.sendFile(path.join(__dirname, 'public', 'index.html'));

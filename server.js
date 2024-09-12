@@ -30,17 +30,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Conexión a la base de datos
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'biblioteca'
+    host: 'dpg-crhh2clsvqrc738e1de0-a.oregon-postgres.render.com', // Cambia esto al host de tu base de datos en Render
+    user: 'alanuwu', // Cambia esto al usuario de tu base de datos en Render
+    password: 'V1oCwY2vGxub0PxOft248xeH89qNV5Mn', // Cambia esto a la contraseña de tu base de datos en Render
+    database: 'biblioteca_6fyp' // Cambia esto al nombre de tu base de datos en Render
 });
+
+// Conecta a la base de datos
 connection.connect((err) => {
     if (err) {
-        console.error('Error de conexión: ' + err.stack);
+        console.error('Error al conectar a la base de datos:', err);
         return;
     }
-    console.log('Conectado como ID ' + connection.threadId);
+    console.log('Conexión a la base de datos establecida con éxito');
 });
 
 app.use(bodyParser.json()); // Esto permite que Express entienda JSON en el cuerpo de la solicitud

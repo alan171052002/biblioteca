@@ -257,15 +257,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const role = data.role;
 
             if (role !== 'Gerente') {
-
-                // Si el rol no es 'gerente', ocultar el menú de archivos
+                // Si el rol no es 'Gerente', ocultar el menú de archivos
                 const archivosMenu = document.getElementById('menu-archivos');
                 if (archivosMenu) {
                     archivosMenu.style.display = 'none';
                 }
+
+                // Ocultar el menú de usuarios si no es gerente
+                const usuariosMenu = document.getElementById('menu-usuarios'); // Asegúrate de que este ID coincida con el del HTML
+                if (usuariosMenu) {
+                    usuariosMenu.style.display = 'none';
+                }
+
                 // Oculta el formulario para agregar manual si no es gerente
-                document.getElementById('manualForm').style.display = 'none';
-                document.getElementById('manualSection').style.display = 'block';
+                const manualForm = document.getElementById('manualForm');
+                const manualSection = document.getElementById('manualSection');
+                if (manualForm) {
+                    manualForm.style.display = 'none';
+                }
+                if (manualSection) {
+                    manualSection.style.display = 'block';
+                }
 
                 // Oculta los botones de eliminar para los operadores
                 const deleteButtons = document.querySelectorAll('.delete-button');
@@ -273,7 +285,103 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.style.display = 'none';
                 });
             }
-
         })
         .catch(error => console.error('Error al obtener el rol del usuario:', error));
+});
+
+
+
+/**********************************
+ * 
+ * 
+ */
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Cargar la lista de usuarios al cargar la página
+    fetch('/usuarios/listar')
+        .then(response => response.json())
+        .then(usuarios => {
+            const usuariosBody = document.getElementById('usuarios-body');
+            usuarios.forEach(usuario => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${usuario.id}</td>
+                    <td>${usuario.Nombre}</td>
+                    <td>${usuario.cargo}</td>
+                    <td>${usuario.user_name}</td>
+                    <td>
+                        <button class="edit-btn" data-id="${usuario.id}" data-nombre="${usuario.Nombre}" data-cargo="${usuario.cargo}" data-username="${usuario.user_name}" data-password="${usuario.password}">Editar</button>
+                        <button class="delete-btn" data-id="${usuario.id}">Eliminar</button>
+                    </td>
+                `;
+                usuariosBody.appendChild(row);
+
+                // Crear la fila del formulario de edición y mantenerla oculta
+                const editRow = document.createElement('tr');
+                editRow.classList.add('editFormRow');
+                editRow.style.display = 'none'; // Mantener oculto
+
+                editRow.innerHTML = `
+                    <td colspan="5">
+                        <form class="editUserForm" data-id="${usuario.id}">
+                            <label>Nombre:</label>
+                            <input type="text" id="editNombre-${usuario.id}" value="${usuario.Nombre}">
+                            <label>Cargo:</label>
+                            <input type="text" id="editCargo-${usuario.id}" value="${usuario.cargo}">
+                            <label>Usuario:</label>
+                            <input type="text" id="editUserName-${usuario.id}" value="${usuario.user_name}">
+                            <label>Password:</label>
+                            <input type="password" id="editPassword-${usuario.id}" placeholder="Ingresa nueva contraseña">
+                            <button type="submit">Guardar cambios</button>
+                        </form>
+                    </td>
+                `;
+                usuariosBody.appendChild(editRow);
+
+                // Manejador de evento para abrir/cerrar el formulario de edición
+                const editButton = row.querySelector('.edit-btn');
+                editButton.addEventListener('click', function () {
+                    const formRow = editRow;
+                    formRow.style.display = formRow.style.display === "none" ? "table-row" : "none";
+                });
+            });
+
+            // Manejador para el envío del formulario de edición
+            document.querySelectorAll('.editUserForm').forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const userId = this.getAttribute('data-id');
+                    const updatedUser = {
+                        Nombre: document.getElementById(`editNombre-${userId}`).value,
+                        cargo: document.getElementById(`editCargo-${userId}`).value,
+                        user_name: document.getElementById(`editUserName-${userId}`).value,
+                        password: document.getElementById(`editPassword-${userId}`).value
+                    };
+
+                    console.log('Datos a enviar:', updatedUser); // Añadir este console.log
+
+                    fetch(`/usuarios/editar/${userId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(updatedUser),
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Respuesta del servidor:', data); // Agregar este console.log
+                            if (data.success) {
+                                alert('Usuario actualizado exitosamente');
+                                console.log('Respuesta del servidor:', data); // Agregar este console.log
+                                location.reload(); // Actualizar la página después de guardar
+                            } else {
+                                alert('Error al actualizar el usuario');
+                            }
+                        })
+                        .catch(err => console.error('Error:', err));
+                });
+            });
+        })
+        .catch(err => console.error('Error al obtener los usuarios:', err));
 });

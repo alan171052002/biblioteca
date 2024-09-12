@@ -3,6 +3,7 @@ const path = require('path');
 const mysql = require('mysql');
 const session = require('express-session');
 const multer = require('multer');
+const bodyParser = require('body-parser');
 const { PDFDocument } = require('pdf-lib');
 
 const app = express();
@@ -34,7 +35,6 @@ const connection = mysql.createConnection({
     password: '',
     database: 'biblioteca'
 });
-
 connection.connect((err) => {
     if (err) {
         console.error('Error de conexión: ' + err.stack);
@@ -43,6 +43,7 @@ connection.connect((err) => {
     console.log('Conectado como ID ' + connection.threadId);
 });
 
+app.use(bodyParser.json()); // Esto permite que Express entienda JSON en el cuerpo de la solicitud
 // Ruta para manejar el registro de usuarios
 app.post('/registro', (req, res) => {
     const { cargo, Nombre, user_name, password, repetirPassword } = req.body;
@@ -59,6 +60,69 @@ app.post('/registro', (req, res) => {
         res.redirect('/login');
     });
 });
+app.put('/usuarios/editar/:id', (req, res) => {
+    const userId = req.params.id;
+    const { Nombre, cargo, user_name, password } = req.body;
+
+    if (!Nombre || !cargo || !user_name) {
+        return res.status(400).json({ success: false, message: 'Datos faltantes.' });
+    }
+
+    let query;
+    let values;
+
+    if (password) {
+        // Actualizar todo incluyendo la contraseña
+        query = `UPDATE usuarios SET Nombre = ?, cargo = ?, user_name = ?, password = ? WHERE id = ?`;
+        values = [Nombre, cargo, user_name, password, userId];
+    } else {
+        // Actualizar sin modificar la contraseña
+        query = `UPDATE usuarios SET Nombre = ?, cargo = ?, user_name = ? WHERE id = ?`;
+        values = [Nombre, cargo, user_name, userId];
+    }
+
+    // Usar connection.query en lugar de db.query
+    connection.query(query, values, (err, result) => {
+        if (err) {
+            console.error('Error al actualizar usuario:', err);
+            return res.status(500).json({ success: false, message: 'Error al actualizar usuario.' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+        }
+
+        return res.json({ success: true, message: 'Usuario actualizado exitosamente.' });
+    });
+});
+// Ruta para eliminar un usuario
+app.delete('/usuarios/eliminar/:id', (req, res) => {
+    const userId = req.params.id;
+
+    const sql = 'DELETE FROM usuarios WHERE id = ?';
+    connection.query(sql, [userId], (err, result) => {
+        if (err) {
+            console.error('Error al eliminar el usuario:', err);
+            return res.status(500).json({ success: false, message: 'Error al eliminar usuario.' });
+        }
+
+        res.json({ success: true, message: 'Usuario eliminado exitosamente.' });
+    });
+});
+
+// Ruta para listar los usuarios
+app.get('/usuarios/listar', (req, res) => {
+    const sql = 'SELECT * FROM usuarios';
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error al obtener los usuarios:', err);
+            return res.status(500).json({ success: false, message: 'Error al obtener usuarios.' });
+        }
+
+        res.json(results);
+    });
+});
+
 
 // Ruta para manejar el inicio de sesión
 app.post('/login', (req, res) => {
@@ -130,6 +194,18 @@ app.get('/', (req, res) => {
         res.redirect('/login');
     }
 });
+// Obtener usuario por ID
+app.get('/usuarios/:id', (req, res) => {
+    const id = req.params.id;
+
+    const sql = 'SELECT * FROM usuarios WHERE id = ?';
+    connection.query(sql, [id], (err, result) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Error al modificar el usuario.' });
+        }
+        res.json({ success: true });
+    });
+});
 
 // Ruta para verificar si el usuario está autenticado
 app.get('/api/usuario', (req, res) => {
@@ -160,7 +236,9 @@ app.get('/login', (req, res) => {
 app.get('/registro', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'sesion', 'registro.html'));
 });
-
+app.get('/Usuarios', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'sesion', 'usuarios.html'));
+});
 
 
 

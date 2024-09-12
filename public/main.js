@@ -34,10 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
 */
 document.addEventListener('DOMContentLoaded', function () {
     // Cargar la lista de archivos al cargar la página
-    fetch('/archivos/listar')  // Suponiendo que tienes una ruta que devuelve la lista de archivos
+    fetch('/archivos/listar')  // Ruta para listar archivos
         .then(response => response.json())
         .then(data => {
             const fileList = document.getElementById('fileList');
+            fileList.innerHTML = ''; // Limpiar la lista actual
+
             data.forEach(archivo => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -48,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <button class="btn btn-danger btn-sm" onclick="eliminarArchivo(${archivo.id})">Eliminar</button>
                         <label for="paginaEliminar${archivo.id}">Páginas a eliminar:</label>
                         <input type="text" id="paginaEliminar${archivo.id}" placeholder="Ej: 1,2" />
-                        <button class="btn btn-danger btn-sm" onclick="eliminarPaginas('${archivo.pdf_path}', ${archivo.id})">Eliminar</button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarPaginas('${archivo.pdf_path}', ${archivo.id})">Eliminar Páginas</button>
                     </td>
                 `;
                 fileList.appendChild(row);
@@ -63,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formData = new FormData(addFileForm);
 
-        fetch('/archivos/agregar', { // Suponiendo que tienes una ruta para agregar archivos
+        fetch('/archivos/agregar', { // Ruta para agregar archivo
             method: 'POST',
             body: formData
         })
@@ -184,7 +186,7 @@ async function eliminarPaginas(pdfPath, id) {
 
 
 /************************************ */
-document.addEventListener('DOMContentLoaded', function () {
+ddocument.addEventListener('DOMContentLoaded', function () {
     const manualForm = document.getElementById('manualForm');
     const manualTableBody = document.querySelector('#manualTable tbody');
 
@@ -192,21 +194,26 @@ document.addEventListener('DOMContentLoaded', function () {
     function listarManuales() {
         fetch('/manuales/listar')
             .then(response => response.json())
-            .then(manuales => {
-                manualTableBody.innerHTML = ''; // Limpiar la tabla
-                manuales.forEach(manual => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${manual.nombre}</td>
-                        <td>${manual.descripcion}</td>
-                        <td>
-                            <a href="/manuales/${manual.pdf_path}" download>Descargar</a>
-                            <button class="delete-btn" data-id="${manual.id}">Eliminar</button>
-                        </td>
-                    `;
-                    manualTableBody.appendChild(row);
-                });
-            });
+            .then(data => {
+                if (data.success) {
+                    manualTableBody.innerHTML = ''; // Limpiar la tabla
+                    data.manuales.forEach(manual => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${manual.nombre}</td>
+                            <td>${manual.descripcion}</td>
+                            <td>
+                                <a href="/manuales/${manual.pdf_path}" download>Descargar</a>
+                                <button class="delete-btn" data-id="${manual.id}">Eliminar</button>
+                            </td>
+                        `;
+                        manualTableBody.appendChild(row);
+                    });
+                } else {
+                    console.error(data.message);
+                }
+            })
+            .catch(err => console.error('Error al obtener manuales:', err));
     }
 
     // Función para agregar un manual
@@ -222,8 +229,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.success) {
                     listarManuales(); // Actualizar lista de manuales
+                    manualForm.reset(); // Limpiar el formulario después de agregar
+                } else {
+                    alert('Error al agregar manual: ' + data.message);
                 }
-            });
+            })
+            .catch(err => console.error('Error al agregar manual:', err));
     });
 
     // Función para eliminar un manual
@@ -238,8 +249,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(data => {
                     if (data.success) {
                         listarManuales(); // Actualizar lista de manuales
+                    } else {
+                        alert('Error al eliminar manual: ' + data.message);
                     }
-                });
+                })
+                .catch(err => console.error('Error al eliminar manual:', err));
         }
     });
 
@@ -301,87 +315,87 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cargar la lista de usuarios al cargar la página
     fetch('/usuarios/listar')
         .then(response => response.json())
-        .then(usuarios => {
-            const usuariosBody = document.getElementById('usuarios-body');
-            usuarios.forEach(usuario => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${usuario.id}</td>
-                    <td>${usuario.Nombre}</td>
-                    <td>${usuario.cargo}</td>
-                    <td>${usuario.user_name}</td>
-                    <td>
-                        <button class="edit-btn" data-id="${usuario.id}" data-nombre="${usuario.Nombre}" data-cargo="${usuario.cargo}" data-username="${usuario.user_name}" data-password="${usuario.password}">Editar</button>
-                        <button class="delete-btn" data-id="${usuario.id}">Eliminar</button>
-                    </td>
-                `;
-                usuariosBody.appendChild(row);
+        .then(data => {
+            if (data.success) {
+                const usuariosBody = document.getElementById('usuarios-body');
+                data.usuarios.forEach(usuario => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${usuario.id}</td>
+                        <td>${usuario.Nombre}</td>
+                        <td>${usuario.cargo}</td>
+                        <td>${usuario.user_name}</td>
+                        <td>
+                            <button class="edit-btn" data-id="${usuario.id}" data-nombre="${usuario.Nombre}" data-cargo="${usuario.cargo}" data-username="${usuario.user_name}" data-password="${usuario.password}">Editar</button>
+                            <button class="delete-btn" data-id="${usuario.id}">Eliminar</button>
+                        </td>
+                    `;
+                    usuariosBody.appendChild(row);
 
-                // Crear la fila del formulario de edición y mantenerla oculta
-                const editRow = document.createElement('tr');
-                editRow.classList.add('editFormRow');
-                editRow.style.display = 'none'; // Mantener oculto
+                    // Crear la fila del formulario de edición y mantenerla oculta
+                    const editRow = document.createElement('tr');
+                    editRow.classList.add('editFormRow');
+                    editRow.style.display = 'none'; // Mantener oculto
 
-                editRow.innerHTML = `
-                    <td colspan="5">
-                        <form class="editUserForm" data-id="${usuario.id}">
-                            <label>Nombre:</label>
-                            <input type="text" id="editNombre-${usuario.id}" value="${usuario.Nombre}">
-                            <label>Cargo:</label>
-                            <input type="text" id="editCargo-${usuario.id}" value="${usuario.cargo}">
-                            <label>Usuario:</label>
-                            <input type="text" id="editUserName-${usuario.id}" value="${usuario.user_name}">
-                            <label>Password:</label>
-                            <input type="password" id="editPassword-${usuario.id}" placeholder="Ingresa nueva contraseña">
-                            <button type="submit">Guardar cambios</button>
-                        </form>
-                    </td>
-                `;
-                usuariosBody.appendChild(editRow);
+                    editRow.innerHTML = `
+                        <td colspan="5">
+                            <form class="editUserForm" data-id="${usuario.id}">
+                                <label>Nombre:</label>
+                                <input type="text" id="editNombre-${usuario.id}" value="${usuario.Nombre}">
+                                <label>Cargo:</label>
+                                <input type="text" id="editCargo-${usuario.id}" value="${usuario.cargo}">
+                                <label>Usuario:</label>
+                                <input type="text" id="editUserName-${usuario.id}" value="${usuario.user_name}">
+                                <label>Password:</label>
+                                <input type="password" id="editPassword-${usuario.id}" placeholder="Ingresa nueva contraseña">
+                                <button type="submit">Guardar cambios</button>
+                            </form>
+                        </td>
+                    `;
+                    usuariosBody.appendChild(editRow);
 
-                // Manejador de evento para abrir/cerrar el formulario de edición
-                const editButton = row.querySelector('.edit-btn');
-                editButton.addEventListener('click', function () {
-                    const formRow = editRow;
-                    formRow.style.display = formRow.style.display === "none" ? "table-row" : "none";
+                    // Manejador de evento para abrir/cerrar el formulario de edición
+                    const editButton = row.querySelector('.edit-btn');
+                    editButton.addEventListener('click', function () {
+                        const formRow = editRow;
+                        formRow.style.display = formRow.style.display === "none" ? "table-row" : "none";
+                    });
                 });
-            });
 
-            // Manejador para el envío del formulario de edición
-            document.querySelectorAll('.editUserForm').forEach(form => {
-                form.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const userId = this.getAttribute('data-id');
-                    const updatedUser = {
-                        Nombre: document.getElementById(`editNombre-${userId}`).value,
-                        cargo: document.getElementById(`editCargo-${userId}`).value,
-                        user_name: document.getElementById(`editUserName-${userId}`).value,
-                        password: document.getElementById(`editPassword-${userId}`).value
-                    };
+                // Manejador para el envío del formulario de edición
+                document.querySelectorAll('.editUserForm').forEach(form => {
+                    form.addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        const userId = this.getAttribute('data-id');
+                        const updatedUser = {
+                            Nombre: document.getElementById(`editNombre-${userId}`).value,
+                            cargo: document.getElementById(`editCargo-${userId}`).value,
+                            user_name: document.getElementById(`editUserName-${userId}`).value,
+                            password: document.getElementById(`editPassword-${userId}`).value
+                        };
 
-                    console.log('Datos a enviar:', updatedUser); // Añadir este console.log
-
-                    fetch(`/usuarios/editar/${userId}`, {
-                        method: 'PUT',
-                        body: JSON.stringify(updatedUser),
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Respuesta del servidor:', data); // Agregar este console.log
-                            if (data.success) {
-                                alert('Usuario actualizado exitosamente');
-                                console.log('Respuesta del servidor:', data); // Agregar este console.log
-                                location.reload(); // Actualizar la página después de guardar
-                            } else {
-                                alert('Error al actualizar el usuario');
+                        fetch(`/usuarios/editar/${userId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(updatedUser),
+                            headers: {
+                                'Content-Type': 'application/json',
                             }
                         })
-                        .catch(err => console.error('Error:', err));
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('Usuario actualizado exitosamente');
+                                    location.reload(); // Actualizar la página después de guardar
+                                } else {
+                                    alert('Error al actualizar el usuario');
+                                }
+                            })
+                            .catch(err => console.error('Error:', err));
+                    });
                 });
-            });
+            } else {
+                console.error(data.message);
+            }
         })
         .catch(err => console.error('Error al obtener los usuarios:', err));
 });

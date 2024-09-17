@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <td>${manual.nombre}</td>
                         <td>${manual.descripcion}</td>
                         <td>
-                            <a href="/manuales/${manual.pdf_path}" download>Descargar</a>
+                            <a href="/${manual.pdf_path}" download>Descargar</a>
                             <button class="delete-btn btn btn-danger btn-sm" data-id="${manual.id}">Eliminar</button>
                         </td>
                     `;
